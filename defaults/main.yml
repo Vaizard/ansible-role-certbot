@@ -4,7 +4,7 @@ certbot_auto_renew: true
 certbot_auto_renew_user: "{{ ansible_user }}"
 certbot_auto_renew_hour: 3
 certbot_auto_renew_minute: 30
-certbot_auto_renew_options: "--quiet --no-self-upgrade --allow-subset-of-names --expand --renew-with-new-domains --cert-name {{ cert_item.domains | first }}"
+certbot_auto_renew_options: "--quiet --no-self-upgrade --allow-subset-of-names --expand --renew-with-new-domains"
 
 # Parameters used when creating new Certbot certs.
 certbot_create_if_missing: no
