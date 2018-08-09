@@ -4,11 +4,15 @@ certbot_auto_renew: true
 certbot_auto_renew_user: "{{ ansible_user }}"
 certbot_auto_renew_hour: 3
 certbot_auto_renew_minute: 30
-certbot_auto_renew_options: "--quiet --no-self-upgrade --allow-subset-of-names --expand --renew-with-new-domains"
+certbot_auto_renew_options: "--quiet --no-self-upgrade --allow-subset-of-names --expand --renew-with-new-domains --pre-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/pre/' --post-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/post/' --deploy-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/deploy/'"
+
+# Certbot install path
+certbot_dir: /opt/certbot
+certbot_script: "{{ certbot_dir }}/certbot-auto"
 
 # Parameters used when creating new Certbot certs.
 certbot_create_if_missing: no
-certbot_create_method: standalone
+certbot_http_01_port: 8888
 certbot_admin_email: email@example.com
 certbot_certs: []
   # - email: janedoe@example.com
@@ -17,7 +21,13 @@ certbot_certs: []
   #     - example2.com
   # - domains:
   #     - example3.com
-certbot_create_command: "{{ certbot_script }} certonly --{{ certbot_create_method }} {{ certbot_webroot_arg if certbot_create_method == 'webroot'  else '' }} --cert-name {{ cert_item.domains | first }}  --noninteractive --agree-tos --expand --rsa-key-size 4096 --renew-with-new-domains --email {{ cert_item.email | default(certbot_admin_email) }} -d {{ cert_item.domains | join(',') }}"
+certbot_create_command: "{{ certbot_script }} certonly --standalone --cert-name {{ cert_item.domains | first }}  --noninteractive --agree-tos --expand --rsa-key-size 4096 --renew-with-new-domains --email {{ cert_item.email | default(certbot_admin_email) }} -d {{ cert_item.domains | join(',') }} --force-renew --http-01-port {{ certbot_http_01_port }} --preferred-challenges http"
+certbot_posthook_command:
+  haproxy: "cat /etc/letsencrypt/live/{{ cert_item.domains | first }}/fullchain.pem /etc/letsencrypt/live/{{ cert_item.domains | first }}/privkey.pem | tee /etc/ssl/haproxy/combined-{{ cert_item.domains | first }}.pem ; chmod 400 /etc/ssl/haproxy/combined-{{ cert_item.domains | first }}.pem"
+
+certbot_hooks:
+  - haproxy
+
 certbot_create_standalone_stop_services:
   - nginx
   # - apache
@@ -27,9 +37,3 @@ certbot_repo: https://github.com/certbot/certbot.git
 certbot_version: master
 certbot_keep_updated: yes
 
-# Where to put Certbot when installing from source.
-certbot_dir: /opt/certbot
-
-#where the web root is
-certbot_webroot: "/var/www/html"
-certbot_webroot_arg: "-w {{ certbot_webroot }}"

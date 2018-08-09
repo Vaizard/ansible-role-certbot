@@ -1,30 +1,28 @@
 # Ansible Role: Certbot (for Let's Encrypt)
 
-[![Build Status](https://travis-ci.org/geerlingguy/ansible-role-certbot.svg?branch=master)](https://travis-ci.org/geerlingguy/ansible-role-certbot)
+A heavily modified fork of https://github.com/geerlingguy/ansible-role-certbot, which installs and configures Certbot (for Let's Encrypt).
 
-Installs and configures Certbot (for Let's Encrypt).
+## Changes from upstream
 
-## Requirements
-
-If installing from source, Git is required. You can install Git using the `geerlingguy.git` role.
-
-Generally, installing from source (see section `Source Installation from Git`) leads to a better experience using Certbot and Let's Encrypt, especially if you're using an older OS release.
+- **Dropped possibility to use distribution packages** in order to decrease role-upkeep complexity and enable features present only in recent certbot releases. This makes installation from source the supported option, thus git is required.
+- **Dropped all modes except for the standalone mode** to achieve service-independ certificate updates without service downtime. This is achieved by using the http-01 challenge at an unused port (currently defaults to port 8888) for new requests as well as renews.
+- **Added extensible out-of-the-box support for previously unsupported letsencrypt consumers (haproxy, monit, etc.)** achieved by a good use of pre/deploy/post hooks upon all certificate requests.
 
 ## Role Variables
-
-The variable `certbot_install_from_source` controls whether to install Certbot from Git or package management. The latter is the default, so the variable defaults to `no`.
 
     certbot_auto_renew: true
     certbot_auto_renew_user: "{{ ansible_user }}"
     certbot_auto_renew_hour: 3
     certbot_auto_renew_minute: 30
-    certbot_auto_renew_options: "--quiet --no-self-upgrade"
+    certbot_auto_renew_options: "--quiet --no-self-upgrade --allow-subset-of-names --expand --renew-with-new-domains --pre-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/pre/' --post-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/post/' --deploy-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/deploy/'"
 
 By default, this role configures a cron job to run under the provided user account at the given hour and minute, every day. The defaults run `certbot renew` (or `certbot-auto renew`) via cron every day at 03:30:00 by the user you use in your Ansible playbook. It's preferred that you set a custom user/hour/minute so the renewal is during a low-traffic period and done by a non-root user account.
 
-### Automatic Certificate Generation
+## Warning
 
-Currently there is one built-in method for generating new certificates using this role: `standalone`. Other methods (e.g. using nginx or apache and a webroot) may be added in the future.
+The rest of this readme is the original readme from upstream. Some parts definitely won't apply.
+
+### Automatic Certificate Generation
 
 **For a complete example**: see the fully functional test playbook in [tests/test-standalone-nginx-aws.yml](tests/test-standalone-nginx-aws.yml).
 

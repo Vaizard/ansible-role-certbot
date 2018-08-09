@@ -1,0 +1,36 @@
+---
+
+- name: Ensure certbot-auto is executable.
+  file:
+    path: "/etc/letsencrypt/renewal-hooks/{{ item }}"
+    mode: 0644
+    state: directory
+  with_items:
+    - pre
+    - post
+    - deploy
+
+- name: Ensure certbot-auto is executable.
+  file:
+    path: "/etc/ssl/{{ item }}"
+    mode: 0700
+    state: directory
+  with_items: "{{ certbot_hooks }}"
+
+- name: Ensure renew deploy hooks are in place.
+  template:
+    src: "{{ item }}-renew-deploy.sh.j2"
+    dest: "/etc/letsencrypt/renewal-hooks/deploy/{{ item }}.sh"
+    owner: root
+    group: root
+    mode: '0500'
+  with_items: "{{ certbot_hooks }}"
+
+- name: Ensure renew post hooks are in place.
+  template:
+    src: "{{ item }}-renew-post.sh.j2"
+    dest: "/etc/letsencrypt/renewal-hooks/post/{{ item }}.sh"
+    owner: root
+    group: root
+    mode: '0500'
+  with_items: "{{ certbot_hooks }}"

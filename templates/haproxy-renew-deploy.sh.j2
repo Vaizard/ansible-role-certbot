@@ -1,0 +1,9 @@
+#!/bin/sh
+
+LINEAGE=$(echo "$RENEWED_LINEAGE" | sed 's@.*/@@')
+privkey="$RENEWED_LINEAGE/privkey.pem"
+fullchain="$RENEWED_LINEAGE/fullchain.pem"
+combined="/etc/ssl/haproxy/combined-$LINEAGE.pem"
+
+cat "$privkey" "$fullchain" > "$combined"
+chmod 400 "$combined"
