@@ -15,10 +15,10 @@
   shell: "{{ certbot_create_command }}"
   when: not letsencrypt_cert.stat.exists
 
-- name: "Run all generation posthooks"
-  shell: "{{ certbot_posthook_command[item] }}"
-  when: certbot_hooks|length > 0
-  with_items: "{{ certbot_hooks }}"
+#- name: "Run all generation posthooks"
+#  shell: "{{ certbot_posthook_command[item] }}"
+#  when: certbot_hooks|length > 0
+#  with_items: "{{ certbot_hooks }}"
 
 - name: Start services after cert has been generated.
   service:
