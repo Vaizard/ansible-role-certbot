@@ -1,7 +1,7 @@
 ---
 # Certbot auto-renew cron job configuration (for certificate renewals).
 certbot_auto_renew: true
-certbot_auto_renew_user: "{{ ansible_user }}"
+certbot_auto_renew_user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
 certbot_auto_renew_hour: 3
 certbot_auto_renew_minute: 30
 certbot_auto_renew_options: "--quiet --no-self-upgrade --allow-subset-of-names --expand --renew-with-new-domains --pre-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/pre/' --post-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/post/' --deploy-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/deploy/'"
@@ -11,7 +11,7 @@ certbot_dir: /opt/certbot
 certbot_script: "{{ certbot_dir }}/certbot-auto"
 
 # Parameters used when creating new Certbot certs.
-certbot_create_if_missing: no
+certbot_create_if_missing: false
 certbot_http_01_port: 8888
 certbot_admin_email: email@example.com
 certbot_certs: []
@@ -22,8 +22,6 @@ certbot_certs: []
   # - domains:
   #     - example3.com
 certbot_create_command: "{{ certbot_script }} certonly --standalone --cert-name {{ cert_item.domains | first }}  --noninteractive --agree-tos --expand --rsa-key-size 4096 --renew-with-new-domains --email {{ cert_item.email | default(certbot_admin_email) }} -d {{ cert_item.domains | join(',') }} --force-renew --http-01-port {{ certbot_http_01_port }} --preferred-challenges http --pre-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/pre/' --post-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/post/' --deploy-hook '/bin/run-parts /etc/letsencrypt/renewal-hooks/deploy/'"
-#certbot_posthook_command:
-#  haproxy: "cat /etc/letsencrypt/live/{{ cert_item.domains | first }}/fullchain.pem /etc/letsencrypt/live/{{ cert_item.domains | first }}/privkey.pem | tee /etc/ssl/haproxy/combined-{{ cert_item.domains | first }}.pem ; chmod 400 /etc/ssl/haproxy/combined-{{ cert_item.domains | first }}.pem"
 
 certbot_hooks:
   - haproxy
@@ -35,5 +33,5 @@ certbot_create_standalone_stop_services: []
 
 certbot_repo: https://github.com/certbot/certbot.git
 certbot_version: master
-certbot_keep_updated: yes
+certbot_keep_updated: true
 
