@@ -1,5 +1,8 @@
 ---
 
+- import_tasks: setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
+
 - import_tasks: install-from-source.yml
 
 - import_tasks: posthooks-setup.yml
